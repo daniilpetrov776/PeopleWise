@@ -20,7 +20,7 @@ const containerStyle = StyleSheet.create({
         marginHorizontal: 'auto',
         paddingHorizontal: 20,
         overflowX: 'hidden',
-        backgroundColor: 'purple',
+        backgroundColor: 'black',
     },
 })
 

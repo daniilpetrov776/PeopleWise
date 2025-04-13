@@ -6,7 +6,7 @@ export const mockCards: PersonCardType[] = [
       photoPath: "path/to/photo1.jpg",
       name: "John Doe",
       birthday: "1990-01-01",
-      description: "A software engineer with a passion for coding."
+      description: "A software engineer with a passion for coding.",
     },
     {
       photoPath: "path/to/photo2.jpg",

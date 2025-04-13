@@ -3,4 +3,5 @@ export type PersonCardType = {
     name: string;
     birthday: string;
     description: string;
+    isEditing?: boolean;
   };

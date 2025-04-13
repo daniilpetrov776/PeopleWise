@@ -1,8 +1,7 @@
 import React from "react";
 import { StyleSheet, View} from 'react-native';
 import { PersonCardType } from '../../types/cards';
-import PersonCard from "../person-card/preson-card";
-
+import PersonCard from '../person-card/person-card';
 
   type PersonCardsListProps = {
     mockCards: PersonCardType[];
@@ -15,23 +14,27 @@ import PersonCard from "../person-card/preson-card";
           textAlign: 'center',
           marginTop: 50,
           display: 'flex',
-          gap: 20,
+          gap: 40,
+      },
+      shadow: {
+        marginHorizontal: 'auto',
       }
   })
 
   const PersonCardsList: React.FC<PersonCardsListProps> = ({ mockCards }) => {
     return (
-      <View style={cardsStyle.cards}>
-        {mockCards.map((card: PersonCardType, index: number) => (
-          < PersonCard
-            key={index}
-            photoPath={card.photoPath}
-            name={card.name}
-            birthday={card.birthday}
-            description={card.description}
-          />
-        ))}
-      </View>
+
+        <View style={cardsStyle.cards}>
+          {mockCards.map((card: PersonCardType, index: number) => (
+            < PersonCard
+              key={index}
+              photoPath={card.photoPath}
+              name={card.name}
+              birthday={card.birthday}
+              description={card.description}
+            />
+          ))}
+        </View>
     );
   };
   export default PersonCardsList;
