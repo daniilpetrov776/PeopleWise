@@ -4,6 +4,7 @@ import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
 import * as ImagePicker from 'expo-image-picker';
 import { Shadow } from 'react-native-shadow-2';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import AnimatedShadow from '../animated-shadow/animated-shadow';
 
   const PersonCard: React.FC<PersonCardType> = ({
@@ -12,13 +13,16 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
     birthday: initialBirthday,
     description: initialDescription,
   }) => {
-
+    const parsedBirthday =
+    initialBirthday instanceof Date ? initialBirthday : new Date(initialBirthday);
         // Локальное состояние для данных карточки
     const [name, setName] = useState(initialName);
-    const [birthday, setBirthday] = useState(initialBirthday);
+    const [birthday, setBirthday] = useState<Date>(parsedBirthday);
     const [description, setDescription] = useState(initialDescription);
     const [photoUri, setPhotoUri] = useState<string>('');
     const [isEditing, setIsEditing] = useState(false);
+
+    const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
     // Анимация карточки (масштаб)
     const scale = useRef(new Animated.Value(1)).current;
@@ -67,6 +71,13 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
         useNativeDriver: false,
       }).start();
     });
+  };
+
+  const showDatePicker = () => setDatePickerVisible(true);
+  const hideDatePicker = () => setDatePickerVisible(false);
+  const handleConfirm = (date: Date) => {
+    setBirthday(date);
+    hideDatePicker();
   };
 
   const handleImagePicker = async () => {
@@ -123,11 +134,25 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
                     onChangeText={setName}
                     placeholder="Введите имя"
                   />
-                  <TextInput
+                  {/* <TextInput
                     style={styles.input}
                     value={birthday}
                     onChangeText={setBirthday}
                     placeholder="Введите дату рождения"
+                  /> */}
+                  {/* Кнопка-поле для даты */}
+                  <TouchableOpacity onPress={showDatePicker} style={styles.input}>
+                    <Text>
+                      {birthday.toLocaleDateString()} {/* отобразит локальную дату */}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    mode="date"
+                    date={birthday}
+                    onConfirm={handleConfirm}
+                    onCancel={hideDatePicker}
                   />
                   <TextInput
                     style={[styles.input, { height: 60 }]}
@@ -158,7 +183,7 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
                     )}
                   </View>
                   <Text style={styles.h2}>{name}</Text>
-                  <Text>Дата рождения: {birthday}</Text>
+                  <Text>Дата рождения: {birthday.toLocaleDateString()}</Text>
                   <Text>{description}</Text>
                 </>
               )}
