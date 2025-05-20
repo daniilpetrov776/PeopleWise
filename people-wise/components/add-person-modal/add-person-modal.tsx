@@ -18,6 +18,7 @@ import React from "react";
 import { Ionicons } from '@expo/vector-icons';
 import DefaultUserAvatar from "../user-avatar/user-avatar";
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useImagePicker } from "@/hooks/use-image-picker";
 
 type addPersonModalProps = {
     isVisible: boolean;
@@ -27,13 +28,12 @@ type addPersonModalProps = {
 const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => {
   const dispatch = useAppDispatch()
 
-
   const [name, setName] = useState<string>('');
   const [birthday, setBirthday] = useState<Date>(new Date());
   const [description, setDescription] = useState<string>('');
-  const [photoUri, setPhotoUri] = useState<string>('');
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [renderModal, setRenderModal] = useState(isVisible);
+  const {photoUri, pickImage, reset: resetPicker} = useImagePicker()
 
   const opacity = React.useRef(new Animated.Value(0)).current;
 
@@ -56,24 +56,6 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
     }
   }, [isVisible]);
 
-  const pickImage = async () => {
-    const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!granted) {
-      alert('Permission to access gallery is required!');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setPhotoUri(result.assets[0].uri);
-    }
-  };
-
   const showDatePicker = () => setDatePickerVisible(true);
   const hideDatePicker = () => setDatePickerVisible(false);
   const handleDateConfirm = (date: Date) => {
@@ -82,8 +64,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   };
 
   const handleCancel = () => {
-    // reset form if needed
-    setPhotoUri('');
+    resetPicker();
     setName('');
     setBirthday(new Date());
     setDescription('');
@@ -93,7 +74,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   const handleConfirm = () => {
     const newPerson: PersonCardType = {
       name,
-      birthday,
+      birthday: birthday.toISOString(),
       description,
       photoPath: photoUri,
     };
@@ -162,12 +143,10 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
 
 const styles = StyleSheet.create({
   overlay: {
-    // ...StyleSheet.absoluteFillObject,
-    top: -60,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    top: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    height: '120%',
+    height: '100%',
   },
   container: {
     width: '90%',

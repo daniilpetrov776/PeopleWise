@@ -7,5 +7,9 @@ export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof rootReducer>;
 
 export type PeopleData = {
-  cards: PersonCardType[] | [];
+  cards: PersonCardType[];
+}
+
+export type GlobalData = {
+  isOverlayVisible: boolean;
 }

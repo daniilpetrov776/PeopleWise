@@ -1,28 +1,35 @@
 import React, { useRef, useState } from "react";
-import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, Animated, TouchableWithoutFeedback, Platform } from 'react-native';
+import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, Animated, TouchableWithoutFeedback, Platform, Modal } from 'react-native';
 import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
-import * as ImagePicker from 'expo-image-picker';
 import { Shadow } from 'react-native-shadow-2';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import AnimatedShadow from '../animated-shadow/animated-shadow';
+import { Ionicons } from "@expo/vector-icons";
+import { useAppDispatch } from "@/hooks/store.hooks";
+import { hideOverlay, showOverlay } from "@/store/global-data/global-data";
+import { useImagePicker } from "@/hooks/use-image-picker";
 
   const PersonCard: React.FC<PersonCardType> = ({
-    // photoPath,
+    photoPath,
     name: initialName,
     birthday: initialBirthday,
     description: initialDescription,
   }) => {
     const parsedBirthday =
-    initialBirthday instanceof Date ? initialBirthday : new Date(initialBirthday);
+    typeof initialBirthday === 'string'
+    ? new Date(initialBirthday)
+    : initialBirthday instanceof Date
+    ? initialBirthday
+    : new Date()
         // Локальное состояние для данных карточки
     const [name, setName] = useState(initialName);
     const [birthday, setBirthday] = useState<Date>(parsedBirthday);
     const [description, setDescription] = useState(initialDescription);
-    const [photoUri, setPhotoUri] = useState<string>('');
+    // const [photoUri, setPhotoUri] = useState<string>(photoPath ||'');
     const [isEditing, setIsEditing] = useState(false);
-
     const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const {photoUri, pickImage, reset: resetPicker} = useImagePicker(photoPath)
 
     // Анимация карточки (масштаб)
     const scale = useRef(new Animated.Value(1)).current;
@@ -33,6 +40,7 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
 
     const enterEditing = () => {
       if (!isEditing) {
+        resetPicker(); // сбрасываем фото в начальное состояние
         setIsEditing(true);
         Animated.spring(scale, {
           toValue: 1.1,
@@ -80,26 +88,6 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
     hideDatePicker();
   };
 
-  const handleImagePicker = async () => {
-    // Запрашиваем разрешения (для iOS)
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("Доступ к галерее не предоставлен");
-      return;
-    }
-    // Открываем галерею
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setPhotoUri(result.assets[0].uri);
-    }
-  };
-
     // Интерполяция для анимации кнопки "Сохранить"
     const buttonTranslateY = saveButtonAnim.interpolate({
       inputRange: [0, 1],
@@ -107,9 +95,23 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
     });
     const buttonOpacity = saveButtonAnim; // Прозрачность равна значению анимированного параметра
 
+    const dispatch = useAppDispatch();
+
+    const handleCancel = () => {
+      resetPicker(); // сбрасываем фото в начальное состояние
+      setConfirmVisible(false);
+      dispatch(hideOverlay());
+    }
+
+    const handleDelete = () => {
+    // dispatch(deletePersonAction(id));
+    console.log('Удаляем карточку');
+    setConfirmVisible(false);
+    dispatch(hideOverlay());
+  };
 
     return (
-
+    <>
       <Shadow
       distance={25}
       offset={[0, 0]}
@@ -118,9 +120,13 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
       >
         <TouchableWithoutFeedback onPress={enterEditing}>
             <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
+            {/* Иконка удаления */}
+            <TouchableOpacity style={styles.deleteIcon} onPress={() => { setConfirmVisible(true); dispatch(showOverlay()); }}>
+              <Ionicons name="trash" size={20} color="#f00" />
+            </TouchableOpacity>
               {isEditing ? (
                 <>
-                  <TouchableOpacity onPress={handleImagePicker} style={styles.imageContainer}>
+                  <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
                     {photoUri ? (
                       <Image style={styles.image} source={{ uri: photoUri }} />
                     ) : (
@@ -133,13 +139,11 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
                     value={name}
                     onChangeText={setName}
                     placeholder="Введите имя"
+                    keyboardType="default"         // ставим обычную клавиатуру
+                    autoCapitalize="sentences"     // автокапитализация после точки / в начале фразы
+                    autoCorrect={false}            // отключаем автокоррекцию, она порой вмешивается
+                    textContentType="name"
                   />
-                  {/* <TextInput
-                    style={styles.input}
-                    value={birthday}
-                    onChangeText={setBirthday}
-                    placeholder="Введите дату рождения"
-                  /> */}
                   {/* Кнопка-поле для даты */}
                   <TouchableOpacity onPress={showDatePicker} style={styles.input}>
                     <Text>
@@ -160,6 +164,9 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
                     onChangeText={setDescription}
                     placeholder="Введите описание"
                     multiline
+                    keyboardType="default"
+                    autoCapitalize="sentences"
+                    autoCorrect={false}
                   />
                   {/* Animated View для кнопки "Сохранить" */}
                   <Animated.View
@@ -190,6 +197,22 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
             </Animated.View>
         </TouchableWithoutFeedback>
       </Shadow>
+
+      {/* Модалка подтверждения удаления */}
+      <Modal visible={confirmVisible} transparent animationType="fade" onRequestClose={() => setConfirmVisible(false)}>
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmBox}>
+            <Text style={styles.confirmText}>Удалить карточку?</Text>
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}><Text>Отмена</Text></TouchableOpacity>
+              <TouchableOpacity onPress={handleDelete} style={styles.confirmBtn}><Text style={{ color: '#fff' }}>Удалить</Text></TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
+
+
     );
   };
 
@@ -250,6 +273,13 @@ import AnimatedShadow from '../animated-shadow/animated-shadow';
       color: "white",
       fontWeight: "700",
     },
+    confirmOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
+    confirmBox: { width: 200, backgroundColor: '#fff', borderRadius: 8, padding: 16, alignItems: 'center' },
+    confirmText: { marginBottom: 16, fontSize: 16 },
+    confirmButtons: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
+    cancelBtn: { padding: 8 },
+    confirmBtn: { padding: 8, backgroundColor: '#f00', borderRadius: 5 },
+    deleteIcon: { position: 'absolute', top: 10, right: 10, zIndex: 5 },
 })
 
   export default PersonCard;

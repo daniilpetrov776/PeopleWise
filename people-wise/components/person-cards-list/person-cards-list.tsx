@@ -4,7 +4,7 @@ import { PersonCardType } from '../../types/cards';
 import PersonCard from '../person-card/person-card';
 
   type PersonCardsListProps = {
-    mockCards: PersonCardType[];
+    cards: PersonCardType[];
   }
 
   const cardsStyle = StyleSheet.create({
@@ -21,11 +21,11 @@ import PersonCard from '../person-card/person-card';
       }
   })
 
-  const PersonCardsList: React.FC<PersonCardsListProps> = ({ mockCards }) => {
+  const PersonCardsList: React.FC<PersonCardsListProps> = ({ cards }) => {
     return (
 
         <View style={cardsStyle.cards}>
-          {mockCards.map((card: PersonCardType, index: number) => (
+          {cards.map((card: PersonCardType, index: number) => (
             < PersonCard
               key={index}
               photoPath={card.photoPath}
