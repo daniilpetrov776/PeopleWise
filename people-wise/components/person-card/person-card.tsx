@@ -8,6 +8,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAppDispatch } from "@/hooks/store.hooks";
 import { hideOverlay, showOverlay } from "@/store/global-data/global-data";
 import { useImagePicker } from "@/hooks/use-image-picker";
+import { ConfirmDialog } from "../confirm-dialog/confirm-dialog";
+import { useCardAnimation } from "@/hooks/use-card-animation";
 
   const PersonCard: React.FC<PersonCardType> = ({
     photoPath,
@@ -21,64 +23,31 @@ import { useImagePicker } from "@/hooks/use-image-picker";
     : initialBirthday instanceof Date
     ? initialBirthday
     : new Date()
+
         // Локальное состояние для данных карточки
     const [name, setName] = useState(initialName);
     const [birthday, setBirthday] = useState<Date>(parsedBirthday);
     const [description, setDescription] = useState(initialDescription);
-    // const [photoUri, setPhotoUri] = useState<string>(photoPath ||'');
     const [isEditing, setIsEditing] = useState(false);
     const [isDatePickerVisible, setDatePickerVisible] = useState(false);
     const [confirmVisible, setConfirmVisible] = useState(false);
-    const {photoUri, pickImage, reset: resetPicker} = useImagePicker(photoPath)
 
-    // Анимация карточки (масштаб)
-    const scale = useRef(new Animated.Value(1)).current;
-    // Анимация кнопки "Сохранить"
-    const saveButtonAnim = useRef(new Animated.Value(0)).current;
-    // анимация тени
-    const shadowDistance = useRef(new Animated.Value(25)).current;
+    const {photoUri, pickImage, reset: resetPicker} = useImagePicker(photoPath)
+    const { scale, saveButtonAnim, shadowDistance, enter, leave } = useCardAnimation();
 
     const enterEditing = () => {
       if (!isEditing) {
         resetPicker(); // сбрасываем фото в начальное состояние
         setIsEditing(true);
-        Animated.spring(scale, {
-          toValue: 1.1,
-          friction: 3,
-          useNativeDriver: true,
-        }).start();
-        Animated.spring(saveButtonAnim, {
-          toValue: 1,
-          friction: 3,
-          useNativeDriver: true,
-        }).start();
-        Animated.timing(shadowDistance, {
-          toValue: isEditing ? 40 : 25, // увеличим тень при редактировании
-          duration: 300,
-          useNativeDriver: false, // нельзя использовать native driver для layout свойств
-        }).start();
+        enter();
       }
     };
 
       // При нажатии на кнопку "Сохранить": анимированное исчезновение кнопки, выключение режима редактирования и возвращение масштаба
   const handleSave = () => {
-    Animated.timing(saveButtonAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
+    leave(() => {
       setIsEditing(false);
-      Animated.spring(scale, {
-        toValue: 1,
-        friction: 3,
-        useNativeDriver: true,
-      }).start();
-      Animated.timing(shadowDistance, {
-        toValue: 25,
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    });
+    })
   };
 
   const showDatePicker = () => setDatePickerVisible(true);
@@ -199,20 +168,14 @@ import { useImagePicker } from "@/hooks/use-image-picker";
       </Shadow>
 
       {/* Модалка подтверждения удаления */}
-      <Modal visible={confirmVisible} transparent animationType="fade" onRequestClose={() => setConfirmVisible(false)}>
-        <View style={styles.confirmOverlay}>
-          <View style={styles.confirmBox}>
-            <Text style={styles.confirmText}>Удалить карточку?</Text>
-            <View style={styles.confirmButtons}>
-              <TouchableOpacity onPress={handleCancel} style={styles.cancelBtn}><Text>Отмена</Text></TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} style={styles.confirmBtn}><Text style={{ color: '#fff' }}>Удалить</Text></TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ConfirmDialog
+        visible={confirmVisible}
+        message="Удалить карточку?"
+        buttonText="Удалить"
+        onCancel={handleCancel}
+        onConfirm={handleDelete}
+      />
     </>
-
-
     );
   };
 
@@ -273,12 +236,6 @@ import { useImagePicker } from "@/hooks/use-image-picker";
       color: "white",
       fontWeight: "700",
     },
-    confirmOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' },
-    confirmBox: { width: 200, backgroundColor: '#fff', borderRadius: 8, padding: 16, alignItems: 'center' },
-    confirmText: { marginBottom: 16, fontSize: 16 },
-    confirmButtons: { flexDirection: 'row', justifyContent: 'space-between', width: '100%' },
-    cancelBtn: { padding: 8 },
-    confirmBtn: { padding: 8, backgroundColor: '#f00', borderRadius: 5 },
     deleteIcon: { position: 'absolute', top: 10, right: 10, zIndex: 5 },
 })
 
