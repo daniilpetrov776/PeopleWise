@@ -34,6 +34,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   const [description, setDescription] = useState<string>('');
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [renderModal, setRenderModal] = useState(isVisible);
+  const [nameError, setNameError] = useState<string | null>(null);
   const {photoUri, pickImage, reset: resetPicker} = useImagePicker()
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,8 +81,15 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
     if (isSubmitting) return;
     const now = Date.now();
     if (now - lastSubmitRef.current < DEBOUNCE_DELAY) return;
+
+    if (name.trim() === '') {
+    setNameError('Введите имя');
+    return;
+  }
+
     lastSubmitRef.current = now;
     setIsSubmitting(true);
+    setNameError(null); // сбрасываем ошибку
 
     const newPerson: Omit<PersonCardType, 'id'> = {
       name,
@@ -126,11 +134,19 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
           </TouchableOpacity>
 
           <TextInput
-            style={styles.input}
-            placeholder="Имя"
+            style={[styles.input, nameError && styles.inputError]}
+            placeholder={nameError ? 'Введите имя' : 'Имя'}
+            placeholderTextColor={nameError ? '#FF3B30' : '#999'}
             value={name}
-            onChangeText={setName}
+            onChangeText={text => {
+              setName(text);
+              if (text.trim() !== '') {
+                setNameError(null);
+              }
+            }}
           />
+
+          {/* {nameError && <Text style={styles.errorText}>{nameError}</Text>} */}
 
           <TouchableOpacity style={styles.input} onPress={showDatePicker} disabled={isSubmitting}>
             <Text>{birthday.toLocaleDateString()}</Text>
@@ -205,6 +221,14 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
+errorText: {
+  color: 'red',
+  fontSize: 12,
+  marginBottom: 8,
+},
+inputError: {
+  borderColor: 'red',
+},
 });
 
 export default AddPersonModal;
