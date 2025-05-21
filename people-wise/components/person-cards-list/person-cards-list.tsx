@@ -28,6 +28,7 @@ import PersonCard from '../person-card/person-card';
           {cards.map((card: PersonCardType, index: number) => (
             < PersonCard
               key={index}
+              id={card.id}
               photoPath={card.photoPath}
               name={card.name}
               birthday={card.birthday}

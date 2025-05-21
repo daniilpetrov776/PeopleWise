@@ -1,6 +1,5 @@
 import { useAppDispatch } from "@/hooks/store.hooks";
-import { useState } from "react";
-import * as ImagePicker from 'expo-image-picker';
+import { useRef, useState } from "react";
 import { PersonCardType } from "@/types/cards";
 import { addPersonAction } from "@/store/actions";
 import {
@@ -25,6 +24,8 @@ type addPersonModalProps = {
     onClose: () => void;
 }
 
+const DEBOUNCE_DELAY = 200;
+
 const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => {
   const dispatch = useAppDispatch()
 
@@ -35,10 +36,14 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   const [renderModal, setRenderModal] = useState(isVisible);
   const {photoUri, pickImage, reset: resetPicker} = useImagePicker()
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const lastSubmitRef = useRef(0);
   const opacity = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     if (isVisible) {
+      setIsSubmitting(false); // сброс при открытии
+      lastSubmitRef.current = 0;
       setRenderModal(true);
       Animated.timing(opacity, {
         toValue: 1,
@@ -72,14 +77,24 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   };
 
   const handleConfirm = () => {
-    const newPerson: PersonCardType = {
+    if (isSubmitting) return;
+    const now = Date.now();
+    if (now - lastSubmitRef.current < DEBOUNCE_DELAY) return;
+    lastSubmitRef.current = now;
+    setIsSubmitting(true);
+
+    const newPerson: Omit<PersonCardType, 'id'> = {
       name,
       birthday: birthday.toISOString(),
       description,
       photoPath: photoUri,
     };
     dispatch(addPersonAction(newPerson));
-    handleCancel();
+
+    // reset after debounce
+    setTimeout(() => {
+      handleCancel();
+    }, DEBOUNCE_DELAY);
   };
 
   return (
@@ -92,16 +107,16 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
       <Animated.View style={[styles.overlay, { opacity }]}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleCancel}>
+            <TouchableOpacity onPress={handleCancel} disabled={isSubmitting}>
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={styles.title}>Новая карточка</Text>
-            <TouchableOpacity onPress={handleConfirm}>
+            <TouchableOpacity onPress={handleConfirm} disabled={isSubmitting}>
               <Ionicons name="checkmark" size={24} color="#007AFF" />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
+          <TouchableOpacity style={styles.imageContainer} onPress={pickImage} disabled={isSubmitting}>
             {photoUri ? (
               <Image source={{ uri: photoUri }} style={styles.image} />
             ) : (
@@ -117,7 +132,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
             onChangeText={setName}
           />
 
-          <TouchableOpacity style={styles.input} onPress={showDatePicker}>
+          <TouchableOpacity style={styles.input} onPress={showDatePicker} disabled={isSubmitting}>
             <Text>{birthday.toLocaleDateString()}</Text>
           </TouchableOpacity>
           <DateTimePickerModal

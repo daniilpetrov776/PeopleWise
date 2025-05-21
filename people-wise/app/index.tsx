@@ -1,22 +1,12 @@
-import { StyleSheet, ScrollView, View, TouchableOpacity, Animated } from 'react-native';
+import { StyleSheet, ScrollView, View, TouchableOpacity, Animated, Image } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import PersonCardsList from '../components/person-cards-list/person-cards-list';
-import { mockCards } from '../mocks/cards';
 import { Ionicons } from '@expo/vector-icons';
 import AddPersonModal from '@/components/add-person-modal/add-person-modal';
 import { useAppDispatch, useAppSelector } from '@/hooks/store.hooks';
 import { getCards } from '@/store/people-data/selectors';
 import { getIsOverlayVisible } from '@/store/global-data/selectors';
 import { hideOverlay, showOverlay } from '@/store/global-data/global-data';
-
-const textStyle = StyleSheet.create({
-    text: {
-        fontSize: 20,
-        color: 'white',
-        textAlign: 'center',
-        marginTop: 50,
-    },
-})
 
 const containerStyle = StyleSheet.create({
     container: {
@@ -60,32 +50,10 @@ const styles = StyleSheet.create({
 const Home: React.FC = () => {
   const dispatch = useAppDispatch();
   const cards = useAppSelector(getCards);
-
-  // const [modalVisible, setModalVisible] = useState(false);
   const isOverlayVisible = useAppSelector(getIsOverlayVisible);
   const [isModalVisible, setModalVisible] = useState(false);
 
   const opacity = React.useRef(new Animated.Value(0)).current;
-  // React.useEffect(() => {
-  //     if (modalVisible) {
-  //       setModalVisible(true);
-  //       Animated.timing(opacity, {
-  //         toValue: 1,
-  //         duration: 300,
-  //         useNativeDriver: true,
-  //       }).start();
-  //       console.log('Modal is visible');
-  //     } else {
-  //       Animated.timing(opacity, {
-  //         toValue: 0,
-  //         duration: 300,
-  //         useNativeDriver: true,
-  //       }).start(() => {
-  //         setModalVisible(false)
-  //       });
-  //     }
-  //   }, [modalVisible]);
-
     useEffect(() => {
     Animated.timing(opacity, {
       toValue: isOverlayVisible ? 1 : 0,
@@ -112,8 +80,27 @@ const Home: React.FC = () => {
     closeOverlay();
   }
 
+  const hintOpacity = React.useRef(new Animated.Value(cards.length === 0 ? 1 : 0)).current;
+
+  useEffect(() => {
+  Animated.timing(hintOpacity, {
+    toValue: cards.length === 0 ? 1 : 0,
+    duration: 300,
+    useNativeDriver: true,
+  }).start();
+}, [cards.length]);
+
   return (
   <View style={{ flex: 1, position: 'relative'}}>
+    {/* подсказка */}
+    <Animated.View style={{ opacity: hintOpacity, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 10, pointerEvents: 'none' }}>
+      {(
+        <>
+        <Image source={require('@/assets/images/cloud.png')} style={{ width: 400, height: 300, position: 'absolute', top: 200, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 10 }} />
+        <Image source={require('@/assets/images/help-arrow.png')} style={{ width: 300, height: 900, position: 'absolute', top: -100, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 10 }} />
+        </>
+      )}
+    </Animated.View>
     {/* оверлей */}
     <Animated.View
     pointerEvents={isOverlayVisible ? 'auto' : 'none'}
@@ -136,6 +123,5 @@ const Home: React.FC = () => {
   </View>
   )
 }
-
 
 export default Home;
