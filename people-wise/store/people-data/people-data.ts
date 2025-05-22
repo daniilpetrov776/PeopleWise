@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { NameSpace } from '../../const';
 import { PersonCardType } from '../../types/cards';
 import { PeopleData } from '../../types/state';
-import { addPersonAction, deletePersonAction, updatePersonAction } from '../actions';
+import { addPersonAction, deletePersonAction, syncPersonsFromDB, updatePersonAction } from '../actions';
 
 const initialState: PeopleData = {
   cards: [] as PersonCardType[],
@@ -39,7 +39,10 @@ export const peopleData = createSlice({
       })
       .addCase(deletePersonAction.rejected, () => {
         console.error('Error deleting person');
-      });
+      })
+      .addCase(syncPersonsFromDB.fulfilled, (state, action) => {
+        state.cards = action.payload;
+      })
   },
 })
 

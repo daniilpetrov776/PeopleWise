@@ -1,11 +1,13 @@
 import { createAsyncThunk, nanoid } from '@reduxjs/toolkit';
 import { PersonCardType } from '../types/cards';
 import { ThunkExtraArg } from '.';
+import { getAllPersons } from '@/data-base/db';
 
 const Action = {
   ADD_PERSON: 'data/ADD_PERSON',
   UPDATE_PERSON: 'data/UPDATE_PERSON',
   DELETE_PERSON: 'data/DELETE_PERSON',
+  SYNC_PERSONS: 'data/SYNC_PERSONS_FROM_DB',
 }
 
 export const addPersonAction = createAsyncThunk<
@@ -46,3 +48,18 @@ export const deletePersonAction = createAsyncThunk<
     return id;
   }
 );
+
+export const syncPersonsFromDB = createAsyncThunk<
+  PersonCardType[],
+  void,
+  { extra: ThunkExtraArg}
+  >(
+    Action.SYNC_PERSONS,
+    async (_, thunkAPI) => {
+    const { logger } = thunkAPI.extra;
+    logger.info('Syncing persons from DB...');
+    const persons = await getAllPersons();
+    return persons;
+    }
+  )
+

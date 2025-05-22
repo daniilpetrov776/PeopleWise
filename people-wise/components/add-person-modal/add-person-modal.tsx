@@ -69,11 +69,14 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
     hideDatePicker();
   };
 
+
+
   const handleCancel = () => {
     resetPicker();
     setName('');
     setBirthday(new Date());
     setDescription('');
+    setNameError(null);
     onClose();
   };
 

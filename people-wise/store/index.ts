@@ -1,7 +1,9 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore, Middleware } from '@reduxjs/toolkit';
 import { rootReducer } from './root-reducer';
 import { Logger } from '../libs/logger'
 import { ConsoleLogger } from '../libs/logger/console.loger';
+import { addPersonAction, deletePersonAction, updatePersonAction } from './actions';
+import { deletePerson, insertOrReplacePerson } from '@/data-base/db';
 
 
 export interface ThunkExtraArg {
@@ -19,6 +21,26 @@ const loggerMiddleware = (storeAPI: any) => (next: any) => (action: any) => {
   return result;                                 // возвращаем результат dispatch
 };
 
+export const databaseMiddleware: Middleware = store => next => async action => {
+  // Сначала пропускаем экшен дальше — к редьюсерам
+  const result = next(action);
+
+  // Потом обновляем SQLite, если действие выполнено успешно
+  if (addPersonAction.fulfilled.match(action)) {
+    await insertOrReplacePerson(action.payload);
+  }
+
+  if (updatePersonAction.fulfilled.match(action)) {
+    await insertOrReplacePerson(action.payload);
+  }
+
+  if (deletePersonAction.fulfilled.match(action)) {
+    await deletePerson(action.payload);
+  }
+
+  return result;
+};
+
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
@@ -27,5 +49,5 @@ export const store = configureStore({
         extraArgument,
       }
     })
-    .concat(loggerMiddleware),
+    .concat(loggerMiddleware, databaseMiddleware),
 });
