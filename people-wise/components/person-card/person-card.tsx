@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, Animated, TouchableWithoutFeedback, } from 'react-native';
 import { PersonCardType } from '../../types/cards';;
 import { Shadow } from 'react-native-shadow-2';
@@ -12,6 +12,7 @@ import { useCardAnimation } from "@/hooks/use-card-animation";
 import EditForm from "../edit-form/edit-form";
 import DisplayView from "../display-view/display-view";
 import { deletePersonAction, updatePersonAction } from "@/store/actions";
+import { useUiDebounce } from "@/hooks/use-ui-debounce";
 
   const PersonCard: React.FC<PersonCardType> = ({
     id,
@@ -37,6 +38,8 @@ import { deletePersonAction, updatePersonAction } from "@/store/actions";
     const [description, setDescription] = useState(propDescription);
     const [isEditing, setIsEditing] = useState(false);
     const [confirmVisible, setConfirmVisible] = useState(false);
+
+    const { isUiBlocked, handleUiDebounce } = useUiDebounce({ delay: 200 });
 
     const enterEditing = () => {
       if (!isEditing) {
@@ -81,7 +84,7 @@ import { deletePersonAction, updatePersonAction } from "@/store/actions";
           <TouchableWithoutFeedback onPress={enterEditing}>
           <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
             {/* Иконка удаления */}
-            <TouchableOpacity style={styles.deleteIcon} onPress={() => { setConfirmVisible(true); dispatch(showOverlay()); }}>
+            <TouchableOpacity style={styles.deleteIcon} disabled={isUiBlocked} onPress={() => { setConfirmVisible(true); handleUiDebounce(); dispatch(showOverlay()); }}>
               <Ionicons name="trash" size={20} color="#f00" />
             </TouchableOpacity>
             {isEditing

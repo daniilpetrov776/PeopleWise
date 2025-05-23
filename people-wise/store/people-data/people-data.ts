@@ -6,6 +6,7 @@ import { addPersonAction, deletePersonAction, syncPersonsFromDB, updatePersonAct
 
 const initialState: PeopleData = {
   cards: [] as PersonCardType[],
+  isDataLoading: true,
 }
 
 export const peopleData = createSlice({
@@ -42,6 +43,14 @@ export const peopleData = createSlice({
       })
       .addCase(syncPersonsFromDB.fulfilled, (state, action) => {
         state.cards = action.payload;
+        state.isDataLoading = false;
+      })
+      .addCase(syncPersonsFromDB.pending, (state) => {
+        state.isDataLoading = true;
+      })
+      .addCase(syncPersonsFromDB.rejected, (state) => {
+        state.isDataLoading = false;
+        console.error('Error syncing persons from DB');
       })
   },
 })

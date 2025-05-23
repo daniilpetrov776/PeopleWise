@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/store.hooks';
 import { getCards } from '@/store/people-data/selectors';
 import { getIsOverlayVisible } from '@/store/global-data/selectors';
 import { hideOverlay, showOverlay } from '@/store/global-data/global-data';
+import { useUiDebounce } from '@/hooks/use-ui-debounce';
 
 const containerStyle = StyleSheet.create({
     container: {
@@ -52,6 +53,7 @@ const Home: React.FC = () => {
   const cards = useAppSelector(getCards);
   const isOverlayVisible = useAppSelector(getIsOverlayVisible);
   const [isModalVisible, setModalVisible] = useState(false);
+  const {isUiBlocked, handleUiDebounce} = useUiDebounce({ delay: 200 });
 
   const opacity = React.useRef(new Animated.Value(0)).current;
     useEffect(() => {
@@ -111,14 +113,15 @@ const Home: React.FC = () => {
   </ScrollView>
   <TouchableOpacity
         style={styles.addButton}
-        onPress={() => { openAddPersonModal() }}
+        onPress={() => {openAddPersonModal(); handleUiDebounce();}}
+        disabled={isUiBlocked}
       >
         <Ionicons name="add" size={32} color="#fff" />
   </TouchableOpacity>
     {/* Модальное окно для добавления человека */}
   <AddPersonModal
         isVisible={isModalVisible}
-        onClose={() => closeAddPersonModal()}
+        onClose={() => {closeAddPersonModal()}}
       />
   </View>
   )

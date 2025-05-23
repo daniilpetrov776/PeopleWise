@@ -76,22 +76,46 @@ export const getAllPersons = async (): Promise<PersonCardType[]> => {
 //   }
 // }
 
+// export const insertOrReplacePerson = async (person: PersonCardType): Promise<void> => {
+//   const db = await openDB();
+//   await db.runAsync(
+//     `INSERT OR REPLACE INTO person_cards
+//     (id, name, birthday, description, photoPath)
+//     VALUES (?, ?, ?, ?, ?);`,
+//     [
+//       person.id ?? null,
+//       person.name ?? null,
+//       person.birthday instanceof Date
+//         ? person.birthday.toISOString()
+//         : person.birthday ?? null,
+//       person.description ?? null,
+//       person.photoPath ?? null,
+//     ]
+//   );
+// };
+
 export const insertOrReplacePerson = async (person: PersonCardType): Promise<void> => {
-  const db = await openDB();
-  await db.runAsync(
-    `INSERT OR REPLACE INTO person_cards
-    (id, name, birthday, description, photoPath)
-    VALUES (?, ?, ?, ?, ?);`,
-    [
-      person.id ?? null,
-      person.name ?? null,
-      person.birthday instanceof Date
-        ? person.birthday.toISOString()
-        : person.birthday ?? null,
-      person.description ?? null,
-      person.photoPath ?? null,
-    ]
-  );
+
+  try {
+    const db = await openDB();
+    await db.runAsync(
+      `INSERT OR REPLACE INTO person_cards
+      (id, name, birthday, description, photoPath)
+      VALUES (?, ?, ?, ?, ?);`,
+      [
+        person.id ?? null,
+        person.name ?? null,
+        person.birthday instanceof Date
+          ? person.birthday.toISOString()
+          : person.birthday ?? null,
+        person.description ?? null,
+        person.photoPath ?? null,
+      ]
+    );
+
+  } catch (error) {
+    console.error('[DB ERROR] insertOrReplacePerson:', error);
+  }
 };
 
 export const updatePerson = async (personCard: PersonCardType): Promise<void> => {

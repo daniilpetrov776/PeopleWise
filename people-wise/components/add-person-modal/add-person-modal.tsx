@@ -1,5 +1,5 @@
 import { useAppDispatch } from "@/hooks/store.hooks";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { PersonCardType } from "@/types/cards";
 import { addPersonAction } from "@/store/actions";
 import {
@@ -18,13 +18,12 @@ import { Ionicons } from '@expo/vector-icons';
 import DefaultUserAvatar from "../user-avatar/user-avatar";
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useImagePicker } from "@/hooks/use-image-picker";
+import { useUiDebounce } from "@/hooks/use-ui-debounce";
 
 type addPersonModalProps = {
     isVisible: boolean;
     onClose: () => void;
 }
-
-const DEBOUNCE_DELAY = 200;
 
 const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => {
   const dispatch = useAppDispatch()
@@ -37,14 +36,11 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   const [nameError, setNameError] = useState<string | null>(null);
   const {photoUri, pickImage, reset: resetPicker} = useImagePicker()
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const lastSubmitRef = useRef(0);
+  const {isUiBlocked, handleUiDebounce} = useUiDebounce({ delay: 200 });
   const opacity = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     if (isVisible) {
-      setIsSubmitting(false); // сброс при открытии
-      lastSubmitRef.current = 0;
       setRenderModal(true);
       Animated.timing(opacity, {
         toValue: 1,
@@ -69,9 +65,9 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
     hideDatePicker();
   };
 
-
-
   const handleCancel = () => {
+    if (isUiBlocked) return;
+    handleUiDebounce();
     resetPicker();
     setName('');
     setBirthday(new Date());
@@ -81,19 +77,13 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   };
 
   const handleConfirm = () => {
-    if (isSubmitting) return;
-    const now = Date.now();
-    if (now - lastSubmitRef.current < DEBOUNCE_DELAY) return;
-
+    if (isUiBlocked) return;
     if (name.trim() === '') {
-    setNameError('Введите имя');
-    return;
-  }
-
-    lastSubmitRef.current = now;
-    setIsSubmitting(true);
-    setNameError(null); // сбрасываем ошибку
-
+      setNameError('Ввежите имя');
+      return;
+    }
+    handleUiDebounce();
+    setNameError(null);
     const newPerson: Omit<PersonCardType, 'id'> = {
       name,
       birthday: birthday.toISOString(),
@@ -101,12 +91,11 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
       photoPath: photoUri,
     };
     dispatch(addPersonAction(newPerson));
-
-    // reset after debounce
+    // Закрываем модалку с небольшой задержкой для UX
     setTimeout(() => {
       handleCancel();
-    }, DEBOUNCE_DELAY);
-  };
+    }, 200);
+  }
 
   return (
     <Modal
@@ -118,16 +107,16 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
       <Animated.View style={[styles.overlay, { opacity }]}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleCancel} disabled={isSubmitting}>
+            <TouchableOpacity onPress={handleCancel} disabled={isUiBlocked}>
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
             <Text style={styles.title}>Новая карточка</Text>
-            <TouchableOpacity onPress={handleConfirm} disabled={isSubmitting}>
+            <TouchableOpacity onPress={handleConfirm} disabled={isUiBlocked}>
               <Ionicons name="checkmark" size={24} color="#007AFF" />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.imageContainer} onPress={pickImage} disabled={isSubmitting}>
+          <TouchableOpacity style={styles.imageContainer} onPress={pickImage} disabled={isUiBlocked}>
             {photoUri ? (
               <Image source={{ uri: photoUri }} style={styles.image} />
             ) : (
@@ -149,9 +138,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
             }}
           />
 
-          {/* {nameError && <Text style={styles.errorText}>{nameError}</Text>} */}
-
-          <TouchableOpacity style={styles.input} onPress={showDatePicker} disabled={isSubmitting}>
+          <TouchableOpacity style={styles.input} onPress={showDatePicker} disabled={isUiBlocked}>
             <Text>{birthday.toLocaleDateString()}</Text>
           </TouchableOpacity>
           <DateTimePickerModal
@@ -224,14 +211,9 @@ const styles = StyleSheet.create({
     height: 80,
     textAlignVertical: 'top',
   },
-errorText: {
-  color: 'red',
-  fontSize: 12,
-  marginBottom: 8,
-},
-inputError: {
-  borderColor: 'red',
-},
+  inputError: {
+    borderColor: 'red',
+  },
 });
 
 export default AddPersonModal;

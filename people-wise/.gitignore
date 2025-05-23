@@ -17,6 +17,10 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Ignore native directories (if you are using EAS Build)
+/android
+/ios
+
 # Metro
 .metro-health-check*
 

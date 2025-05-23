@@ -3,6 +3,7 @@ import { TextInput, TouchableOpacity, Text, Image, StyleSheet, Animated, View } 
 import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { useUiDebounce } from '@/hooks/use-ui-debounce';
 
 export type EditFormProps = Omit<PersonCardType, 'id'> & {
   initialPhotoUri: string;
@@ -41,6 +42,9 @@ const EditForm: React.FC<EditFormProps> = ({
   );
   const [description, setDescription] = useState(propDescription);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+
+  const {isUiBlocked, handleUiDebounce} = useUiDebounce({ delay: 200 });
 
   // При открытии формы и при сбросе нужно синхронизировать локальный стейт
   useEffect(() => {
@@ -64,12 +68,21 @@ const EditForm: React.FC<EditFormProps> = ({
   };
 
   const handleSaveLocal = () => {
+    if (isUiBlocked) return;
+
+    // Валидация имени
+    if (name.trim() === '') {
+    setNameError('Введите имя');
+    return;
+  }
+    handleUiDebounce();
+    setNameError(null);
     onSave({ photoUri, name, birthday, description: description ?? '' });
   };
 
   return (
     <>
-      <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
+      <TouchableOpacity onPress={() => { pickImage(); handleUiDebounce();}} disabled={isUiBlocked} style={styles.imageContainer}>
         {photoUri ? (
           <Image source={{ uri: photoUri }} style={styles.image} />
         ) : (
@@ -78,18 +91,21 @@ const EditForm: React.FC<EditFormProps> = ({
         <Text style={styles.changePhotoText}>Изменить фотографию</Text>
       </TouchableOpacity>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Введите имя"
-        value={name}
-        onChangeText={setName}
-        keyboardType="default"
-        autoCapitalize="sentences"
-        autoCorrect={false}
-        textContentType="name"
-      />
+          <TextInput
+            style={[styles.input, nameError && styles.inputError]}
+            placeholder={nameError ? 'Введите имя' : 'Имя'}
+            placeholderTextColor={nameError ? '#FF3B30' : '#999'}
+            value={name}
+            onChangeText={text => {
+              setName(text);
+              if (text.trim() !== '') {
+                setNameError(null);
+              }
+            }}
+            editable={!isUiBlocked}
+          />
 
-      <TouchableOpacity style={styles.input} onPress={showDatePicker}>
+      <TouchableOpacity style={styles.input} onPress={() => {showDatePicker(); handleUiDebounce();}} disabled={isUiBlocked}>
         <Text>{birthday.toLocaleDateString()}</Text>
       </TouchableOpacity>
       <DateTimePickerModal
@@ -106,14 +122,15 @@ const EditForm: React.FC<EditFormProps> = ({
         value={description}
         onChangeText={setDescription}
         multiline
+        editable={!isUiBlocked}
       />
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
+        <TouchableOpacity onPress={() => {onCancel(); handleUiDebounce();}} style={styles.cancelButton} disabled={isUiBlocked}>
           <Text style={styles.cancelButtonText}>Отмена</Text>
         </TouchableOpacity>
         <Animated.View style={[styles.saveContainer, { transform: [{ translateY: saveStyle.translateY }], opacity: saveStyle.opacity }]}>
-          <TouchableOpacity onPress={handleSaveLocal} style={styles.saveButton}>
+          <TouchableOpacity onPress={() => {handleSaveLocal(); handleUiDebounce()}} style={styles.saveButton} disabled={isUiBlocked}>
             <Text style={styles.saveButtonText}>Сохранить</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -176,6 +193,9 @@ const styles = StyleSheet.create({
       saveButtonText: {
       color: "white",
       fontWeight: "700",
+    },
+    inputError: {
+    borderColor: 'red',
     },
 })
 

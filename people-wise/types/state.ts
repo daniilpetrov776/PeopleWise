@@ -8,6 +8,7 @@ export type RootState = ReturnType<typeof rootReducer>;
 
 export type PeopleData = {
   cards: PersonCardType[];
+  isDataLoading: boolean;
 }
 
 export type GlobalData = {
