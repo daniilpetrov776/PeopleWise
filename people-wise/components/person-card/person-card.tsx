@@ -14,12 +14,13 @@ import DisplayView from "../display-view/display-view";
 import { deletePersonAction, updatePersonAction } from "@/store/actions";
 import { useUiDebounce } from "@/hooks/use-ui-debounce";
 
-  const PersonCard: React.FC<PersonCardType> = ({
+  const PersonCard: React.FC<PersonCardType & { onDelete: (id: string) => void }> = ({
     id,
     photoPath,
     name: propName,
     birthday: propBirthday,
     description: propDescription,
+    onDelete,
   }) => {
     const parsedBirthday =
     typeof propBirthday === 'string'
@@ -84,7 +85,7 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
           <TouchableWithoutFeedback onPress={enterEditing}>
           <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
             {/* Иконка удаления */}
-            <TouchableOpacity style={styles.deleteIcon} disabled={isUiBlocked} onPress={() => { setConfirmVisible(true); handleUiDebounce(); dispatch(showOverlay()); }}>
+            <TouchableOpacity style={styles.deleteIcon} disabled={isUiBlocked} onPress={() => {onDelete(id); handleUiDebounce();}}>
               <Ionicons name="trash" size={20} color="#f00" />
             </TouchableOpacity>
             {isEditing
@@ -115,14 +116,6 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
           </Animated.View>
         </TouchableWithoutFeedback>
         </Shadow>
-        {/* Модалка подтвержения удаления */}
-        <ConfirmDialog
-          visible={confirmVisible}
-          message="Удалить карточку?"
-          buttonText="Удалить"
-          onCancel={handleCancel}
-          onConfirm={handleDelete}
-        />
       </>
     )
   };

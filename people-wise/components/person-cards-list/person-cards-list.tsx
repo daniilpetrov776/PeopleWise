@@ -5,6 +5,7 @@ import PersonCard from '../person-card/person-card';
 
   type PersonCardsListProps = {
     cards: PersonCardType[];
+    onDelete: (id: string) => void
   }
 
   const cardsStyle = StyleSheet.create({
@@ -21,7 +22,7 @@ import PersonCard from '../person-card/person-card';
       }
   })
 
-  const PersonCardsList: React.FC<PersonCardsListProps> = ({ cards }) => {
+  const PersonCardsList: React.FC<PersonCardsListProps> = ({ cards, onDelete }) => {
     return (
 
         <View style={cardsStyle.cards}>
@@ -33,6 +34,7 @@ import PersonCard from '../person-card/person-card';
               name={card.name}
               birthday={card.birthday}
               description={card.description}
+              onDelete={onDelete} // Передаем функцию для открытия модалки
             />
           ))}
         </View>
