@@ -67,7 +67,7 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
     };
 
     const handleDelete = () => {
-    dispatch(deletePersonAction(id)); // TODO: добавить удаление карточки
+    dispatch(deletePersonAction(id));
     console.log('Удаляем карточку');
     setConfirmVisible(false);
     dispatch(hideOverlay());

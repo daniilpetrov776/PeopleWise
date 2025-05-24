@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, View, TouchableOpacity, Animated, Image } from 'react-native';
+import { StyleSheet, ScrollView, View, TouchableOpacity, Animated, Image, Dimensions } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import PersonCardsList from '../components/person-cards-list/person-cards-list';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ import { getCards } from '@/store/people-data/selectors';
 import { getIsOverlayVisible } from '@/store/global-data/selectors';
 import { hideOverlay, showOverlay } from '@/store/global-data/global-data';
 import { useUiDebounce } from '@/hooks/use-ui-debounce';
+
+const { width, height } = Dimensions.get('window');
 
 const containerStyle = StyleSheet.create({
     container: {
@@ -45,7 +47,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     zIndex: 1,
     pointerEvents: 'none'
-  }
+  },
+  cloudImage: {
+    width: width * 0.9, // 80% of screen width
+    height: width * 0.7, // Maintain aspect ratio (adjust based on image's original aspect ratio)
+    position: 'absolute',
+    top: height * 0.2, // 20% of screen height
+    left: '50%',
+    transform: [{ translateX: '-50%' }],
+    zIndex: 10,
+  },
+  arrowImage: {
+    width: width * 0.7, // 60% of screen width
+    height: width * 2.1, // Adjust based on image's original aspect ratio
+    position: 'absolute',
+    top: -height * 0.1, // -10% of screen height
+    left: '50%',
+    transform: [{ translateX: '-50%' }],
+    zIndex: 10,
+  },
 });
 
 const Home: React.FC = () => {
@@ -98,8 +118,8 @@ const Home: React.FC = () => {
     <Animated.View style={{ opacity: hintOpacity, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 10, pointerEvents: 'none' }}>
       {(
         <>
-        <Image source={require('@/assets/images/cloud.png')} style={{ width: 400, height: 300, position: 'absolute', top: 200, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 10 }} />
-        <Image source={require('@/assets/images/help-arrow.png')} style={{ width: 300, height: 900, position: 'absolute', top: -100, left: '50%', transform: [{ translateX: '-50%' }], zIndex: 10 }} />
+        <Image source={require('@/assets/images/cloud.png')} style={styles.cloudImage}/>
+        <Image source={require('@/assets/images/help-arrow.png')} style={styles.arrowImage}/>
         </>
       )}
     </Animated.View>
