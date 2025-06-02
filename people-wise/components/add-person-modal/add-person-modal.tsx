@@ -164,10 +164,11 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
 
 const styles = StyleSheet.create({
   overlay: {
-    top: 0,
     justifyContent: 'center',
     alignItems: 'center',
     height: '100%',
+    width: '100%',
+    position: 'absolute',
   },
   container: {
     width: '90%',

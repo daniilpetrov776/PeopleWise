@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { TextInput, TouchableOpacity, Text, Image, StyleSheet, Animated, View } from 'react-native';
+import { TextInput, TouchableOpacity, Text, Image, StyleSheet, View, ViewStyle } from 'react-native';
 import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useUiDebounce } from '@/hooks/use-ui-debounce';
+import { AnimatedStyle, AnimatedStyleProp } from 'react-native-reanimated';
+// import { ViewStyle } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 export type EditFormProps = Omit<PersonCardType, 'id'> & {
   initialPhotoUri: string;
@@ -15,10 +18,11 @@ export type EditFormProps = Omit<PersonCardType, 'id'> & {
     description: string;
   }) => void;
   onCancel: () => void;
-  saveStyle: {
-    translateY: Animated.AnimatedInterpolation<number>;
-    opacity: Animated.AnimatedInterpolation<number>;
-  };
+  // saveStyle: {
+  //   translateY: Animated.AnimatedInterpolation<number>;
+  //   opacity: Animated.AnimatedInterpolation<number>;
+  saveStyle: AnimatedStyleProp<ViewStyle>;
+  // saveStyle: AnimatedStyle;
 };
 
 const EditForm: React.FC<EditFormProps> = ({
@@ -129,7 +133,7 @@ const EditForm: React.FC<EditFormProps> = ({
         <TouchableOpacity onPress={() => {onCancel(); handleUiDebounce();}} style={styles.cancelButton} disabled={isUiBlocked}>
           <Text style={styles.cancelButtonText}>Отмена</Text>
         </TouchableOpacity>
-        <Animated.View style={[styles.saveContainer, { transform: [{ translateY: saveStyle.translateY }], opacity: saveStyle.opacity }]}>
+        <Animated.View style={[styles.saveContainer, saveStyle]}>
           <TouchableOpacity onPress={() => {handleSaveLocal(); handleUiDebounce()}} style={styles.saveButton} disabled={isUiBlocked}>
             <Text style={styles.saveButtonText}>Сохранить</Text>
           </TouchableOpacity>
@@ -156,7 +160,7 @@ const styles = StyleSheet.create({
     },
       changePhotoText: {
       textAlign: 'center',
-      color: 'blue',
+      color: '#4B7A9E',
       marginBottom: 10,
     },
       input: {
@@ -166,6 +170,7 @@ const styles = StyleSheet.create({
       marginBottom: 10,
       paddingHorizontal: 8,
       paddingVertical: 4,
+      color: '#6D6D72'
     },
       buttonsContainer: {
       flexDirection: 'row',
@@ -176,14 +181,14 @@ const styles = StyleSheet.create({
       padding: 10,
     },
       cancelButtonText: {
-      color: '#333',
+      color: '#6D6D72',
     },
       saveContainer: {
       marginLeft: 'auto',
       alignSelf: 'center',
     },
       saveButton: {
-      backgroundColor: "#007AFF",
+      backgroundColor: "#4B7A9E",
       paddingVertical: 10,
       paddingHorizontal: 20,
       borderRadius: 5,

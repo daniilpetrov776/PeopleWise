@@ -1,27 +1,35 @@
-import React, { useRef, useState } from "react";
-import { StyleSheet, TouchableOpacity, Animated, TouchableWithoutFeedback, } from 'react-native';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { StyleSheet, TouchableOpacity, TouchableWithoutFeedback, } from 'react-native';
 import { PersonCardType } from '../../types/cards';;
-import { Shadow } from 'react-native-shadow-2';
 import { Ionicons } from "@expo/vector-icons";
 import { useAppDispatch } from "@/hooks/store.hooks";
-import { hideOverlay, showOverlay } from "@/store/global-data/global-data";
+import { hideOverlay } from "@/store/global-data/global-data";
 import { useImagePicker } from "@/hooks/use-image-picker";
-import { ConfirmDialog } from "../confirm-dialog/confirm-dialog";
 import { useCardAnimation } from "@/hooks/use-card-animation";
 
 import EditForm from "../edit-form/edit-form";
 import DisplayView from "../display-view/display-view";
-import { deletePersonAction, updatePersonAction } from "@/store/actions";
+import { updatePersonAction } from "@/store/actions";
 import { useUiDebounce } from "@/hooks/use-ui-debounce";
 
-  const PersonCard: React.FC<PersonCardType & { onDelete: (id: string) => void }> = ({
-    id,
-    photoPath,
-    name: propName,
-    birthday: propBirthday,
-    description: propDescription,
-    onDelete,
-  }) => {
+import Animated, {
+  Layout,
+  FadeIn,
+  FadeOutUp,
+} from 'react-native-reanimated';
+
+export type PersonCardHandle = {
+  handleCancel: () => void;
+};
+
+  const PersonCard = forwardRef<PersonCardHandle, PersonCardType & { onDelete: (id: string) => void }>(({
+  id,
+  photoPath,
+  name: propName,
+  birthday: propBirthday,
+  description: propDescription,
+  onDelete,
+}, ref) => {
     const parsedBirthday =
     typeof propBirthday === 'string'
     ? new Date(propBirthday)
@@ -30,7 +38,7 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
     : new Date()
 
     const dispatch = useAppDispatch();
-    const { scale, saveButtonAnim, shadowDistance, enter, leave } = useCardAnimation();
+    const { animatedStyle, saveButtonStyle, enter, leave } = useCardAnimation();
     const {photoUri, pickImage, reset: resetPicker} = useImagePicker(photoPath)
 
     // Локальное состояние для формы
@@ -41,6 +49,10 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
     const [confirmVisible, setConfirmVisible] = useState(false);
 
     const { isUiBlocked, handleUiDebounce } = useUiDebounce({ delay: 200 });
+
+    useImperativeHandle(ref, () => ({
+    handleCancel,
+  }));
 
     const enterEditing = () => {
       if (!isEditing) {
@@ -67,23 +79,15 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
       dispatch(updatePersonAction({id, name, birthday: birthday.toISOString(), description, photoPath: photoUri }));
     };
 
-    const handleDelete = () => {
-    dispatch(deletePersonAction(id));
-    console.log('Удаляем карточку');
-    setConfirmVisible(false);
-    dispatch(hideOverlay());
-  };
-
     return (
       <>
-        <Shadow
-          distance={25}
-          offset={[0, 0]}
-          startColor="rgba(200, 17, 231, 0.5)"
-          containerStyle={styles.shadowContainer}
-        >
           <TouchableWithoutFeedback onPress={enterEditing}>
-          <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
+          <Animated.View
+            layout={Layout.springify()}
+            entering={FadeIn.duration(200)}
+            exiting={FadeOutUp.duration(300)}
+            style={[styles.card, animatedStyle]}
+          >
             {/* Иконка удаления */}
             <TouchableOpacity style={styles.deleteIcon} disabled={isUiBlocked} onPress={() => {onDelete(id); handleUiDebounce();}}>
               <Ionicons name="trash" size={20} color="#f00" />
@@ -96,7 +100,7 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
                   name={name}
                   birthday={birthday}
                   description={description ?? ""}
-                  saveStyle={{ translateY: saveButtonAnim.interpolate({ inputRange:[0,1],outputRange:[20,0] }), opacity: saveButtonAnim }}
+                  saveStyle={saveButtonStyle}
                   onSave={({ photoUri, name, birthday, description }) => {
                     setName(name);
                     setBirthday(birthday);
@@ -115,15 +119,14 @@ import { useUiDebounce } from "@/hooks/use-ui-debounce";
             }
           </Animated.View>
         </TouchableWithoutFeedback>
-        </Shadow>
       </>
     )
-  };
+  });
 
   const styles = StyleSheet.create ({
     card: {
-      backgroundColor: 'white',
-      color: 'black',
+      backgroundColor: '#FAFAF8',
+      color: '#4A4A4A',
       borderRadius: 10,
       padding: 15,
       width: 280,

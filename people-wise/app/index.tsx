@@ -106,18 +106,22 @@ const Home: React.FC = () => {
         <Ionicons name="add" size={32} color="#fff" />
   </TouchableOpacity>
     {/* Модальное окно для добавления человека */}
-  <AddPersonModal
-        isVisible={isModalVisible}
-        onClose={() => {closeAddPersonModal()}}
-      />
-  {/* Модальное окно для удаления */}
-      <ConfirmDialog
-        visible={isDeleteModalVisible}
-        message="Удалить карточку?"
-        buttonText="Удалить"
-        onCancel={closeDeleteModal}
-        onConfirm={handleDelete}
-      />
+  <Animated.View>
+    <AddPersonModal
+          isVisible={isModalVisible}
+          onClose={() => {closeAddPersonModal()}}
+    />
+  </Animated.View>
+  <Animated.View>
+    {/* Модальное окно для удаления */}
+        <ConfirmDialog
+          visible={isDeleteModalVisible}
+          message="Удалить карточку?"
+          buttonText="Удалить"
+          onCancel={closeDeleteModal}
+          onConfirm={handleDelete}
+        />
+  </Animated.View>
   </View>
   )
 }
@@ -132,7 +136,8 @@ const containerStyle = StyleSheet.create({
         marginHorizontal: 'auto',
         paddingHorizontal: 20,
         overflowY: 'visible',
-        backgroundColor: 'black',
+        // backgroundColor: 'black',
+        backgroundColor: '#E6F4EE',
     },
 })
 
@@ -141,7 +146,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     right: 30,
-    backgroundColor: '#007AFF',
+    // backgroundColor: '#007AFF',
+    backgroundColor: '#4B7A9E',
     width: 60,
     height: 60,
     borderRadius: 30,
