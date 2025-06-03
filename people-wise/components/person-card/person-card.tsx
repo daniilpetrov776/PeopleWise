@@ -18,6 +18,10 @@ import Animated, {
   FadeOutUp,
 } from 'react-native-reanimated';
 
+import dayjs, { Dayjs } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+dayjs.extend(customParseFormat);
+
 export type PersonCardHandle = {
   handleCancel: () => void;
 };
@@ -30,20 +34,22 @@ export type PersonCardHandle = {
   description: propDescription,
   onDelete,
 }, ref) => {
-    const parsedBirthday =
-    typeof propBirthday === 'string'
-    ? new Date(propBirthday)
-    : propBirthday instanceof Date
-    ? propBirthday
-    : new Date()
+    // const parsedBirthday =
+    // typeof propBirthday === 'string'
+    // ? new Date(propBirthday)
+    // : propBirthday instanceof Date
+    // ? propBirthday
+    // : new Date()
+    const parsedBirthday = dayjs(propBirthday);
 
+    console.log(parsedBirthday)
     const dispatch = useAppDispatch();
     const { animatedStyle, saveButtonStyle, enter, leave } = useCardAnimation();
     const {photoUri, pickImage, reset: resetPicker} = useImagePicker(photoPath)
 
     // Локальное состояние для формы
     const [name, setName] = useState(propName);
-    const [birthday, setBirthday] = useState<Date>(parsedBirthday);
+    const [birthday, setBirthday] = useState<Dayjs>(parsedBirthday);
     const [description, setDescription] = useState(propDescription);
     const [isEditing, setIsEditing] = useState(false);
     const [confirmVisible, setConfirmVisible] = useState(false);
@@ -73,10 +79,11 @@ export type PersonCardHandle = {
     }
 
     const handleSave = (photoUri: string, name: string, birthday: Date, description: string) => {
+      const newBirthdayDayjs = dayjs(birthday)
       leave(() => {
         setIsEditing(false);
       })
-      dispatch(updatePersonAction({id, name, birthday: birthday.toISOString(), description, photoPath: photoUri }));
+      dispatch(updatePersonAction({id, name, birthday: newBirthdayDayjs.toISOString(), description, photoPath: photoUri }));
     };
 
     return (
@@ -98,14 +105,14 @@ export type PersonCardHandle = {
                   initialPhotoUri={photoUri}
                   pickImage={pickImage}
                   name={name}
-                  birthday={birthday}
+                  birthday={birthday.toDate()}
                   description={description ?? ""}
                   saveStyle={saveButtonStyle}
                   onSave={({ photoUri, name, birthday, description }) => {
                     setName(name);
-                    setBirthday(birthday);
+                    setBirthday(dayjs(birthday));
                     setDescription(description);
-                    handleSave(photoUri, name, birthday, description);
+                    handleSave(photoUri, name, dayjs(birthday).toDate(), description);
                   }}
                   onCancel={handleCancel}
                 />

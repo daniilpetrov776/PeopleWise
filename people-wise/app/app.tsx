@@ -8,10 +8,14 @@ import { useAppDispatch, useAppSelector } from '@/hooks/store.hooks';
 import { syncPersonsFromDB } from '@/store/actions';
 import { getIsDataLoading } from '@/store/people-data/selectors';
 import { initDB } from '@/data-base/db';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 
 type Props = {
   colorScheme: 'dark' | 'light' | null;
 };
+
+dayjs.extend(customParseFormat);
 
 export default function AppLayout({ colorScheme }: Props) {
   const dispatch = useAppDispatch();

@@ -2,33 +2,42 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
+import dayjs from 'dayjs';
 
 type DisplayViewProps = Omit<PersonCardType, 'id'> & {
   photoUri: string;
 };
 
 const getDaysUntilBirthday = (birthday: string): number | null => {
-  const birthDate = new Date(birthday);
-  if (isNaN(birthDate.getTime())) return null;
+  const birthDate = dayjs(birthday);
+  if (!birthDate.isValid()) return null;
 
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const nextBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
+  const now = dayjs();
+  // const currentYear = now.getFullYear();
+  let nextBirthday = birthDate.year(now.year());
+  // const nextBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
 
   // Если день рождения уже прошёл — берём следующий год
-  if (
-    nextBirthday.getMonth() === now.getMonth() &&
-    nextBirthday.getDate() === now.getDate()
-  ) {
-    return 0; // сегодня
+  // if (
+  //   nextBirthday.getMonth() === now.getMonth() &&
+  //   nextBirthday.getDate() === now.getDate()
+  // ) {
+  //   return 0; // сегодня
+  // }
+
+  // if (nextBirthday < now) {
+  //   nextBirthday.setFullYear(currentYear + 1);
+  // }
+
+  // const diffTime = nextBirthday.getTime() - now.getTime();
+  // return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (nextBirthday.isBefore(now, 'day')) {
+    nextBirthday = nextBirthday.add(1, 'year');
   }
 
-  if (nextBirthday < now) {
-    nextBirthday.setFullYear(currentYear + 1);
-  }
+  const diff = nextBirthday.diff(now, 'day');
 
-  const diffTime = nextBirthday.getTime() - now.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diff === 0 ? 0 : diff;
 };
 
 const declineDays = (n: number) => {
@@ -38,7 +47,9 @@ const declineDays = (n: number) => {
 };
 
 const DisplayView: React.FC<DisplayViewProps> = ({ photoUri, name, birthday, description }) => {
-  const daysUntilBirthday = birthday ? getDaysUntilBirthday(typeof birthday === 'string' ? birthday : birthday.toISOString()) : null;
+  const birthdayDate = dayjs(birthday);
+  // const daysUntilBirthday = birthday ? getDaysUntilBirthday(typeof birthday === 'string' ? birthday : birthday.toISOString()) : null;
+  const daysUntilBirthday = birthdayDate.isValid() ? getDaysUntilBirthday(birthdayDate.toISOString()) : null;
 
   return (
     <>
@@ -47,7 +58,7 @@ const DisplayView: React.FC<DisplayViewProps> = ({ photoUri, name, birthday, des
       </View>
       <Text style={styles.h2}>{name}</Text>
       <Text style={styles.text}>
-        Дата рождения: {birthday ? new Date(birthday).toLocaleDateString() : 'Не указано'}
+        Дата рождения: {birthdayDate.isValid() ? birthdayDate.format('DD.MM.YYYY') : 'Не указано'}
       </Text>
       {daysUntilBirthday === 0 ? (
         <Text style={[styles.text, styles.highlight]}>🎉 День рождения сегодня!</Text>
