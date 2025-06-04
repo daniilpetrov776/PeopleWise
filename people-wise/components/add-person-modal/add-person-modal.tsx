@@ -144,7 +144,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
           />
 
           <TouchableOpacity style={styles.input} onPress={showDatePicker} disabled={isUiBlocked}>
-            <Text>{birthday.format('DD.MM.YYY')}</Text>
+            <Text>{birthday.format('DD.MM.YYYY')}</Text>
           </TouchableOpacity>
           <DateTimePickerModal
             isVisible={isDatePickerVisible}

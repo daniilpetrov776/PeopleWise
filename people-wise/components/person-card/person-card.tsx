@@ -34,15 +34,8 @@ export type PersonCardHandle = {
   description: propDescription,
   onDelete,
 }, ref) => {
-    // const parsedBirthday =
-    // typeof propBirthday === 'string'
-    // ? new Date(propBirthday)
-    // : propBirthday instanceof Date
-    // ? propBirthday
-    // : new Date()
     const parsedBirthday = dayjs(propBirthday);
 
-    console.log(parsedBirthday)
     const dispatch = useAppDispatch();
     const { animatedStyle, saveButtonStyle, enter, leave } = useCardAnimation();
     const {photoUri, pickImage, reset: resetPicker} = useImagePicker(photoPath)
