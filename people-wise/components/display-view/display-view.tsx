@@ -15,12 +15,14 @@ const computeNextBirthday = (birthdayIso: string) => {
   const birthDate = dayjs(birthdayIso);
   if (!birthDate.isValid()) return { days: null as number | null, next: null as dayjs.Dayjs | null };
 
-  const now = dayjs();
-  let next = birthDate.year(now.year());
+  const now = dayjs().startOf('day');
+
+   // Делаем «момент дня рождения» в текущем году и сразу обнуляем время
+  let next = birthDate.year(now.year()).startOf('day');
 
   // Если в этом году уже было
   if (next.isBefore(now, 'day')) {
-    next = next.add(1, 'year');
+    next = next.add(1, 'year').startOf('day');
   }
 
   const diffDays = next.diff(now, 'day');
