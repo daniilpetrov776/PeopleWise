@@ -2,17 +2,7 @@ import { useAppDispatch } from "@/hooks/store.hooks";
 import { useState } from "react";
 import { PersonCardType } from "@/types/cards";
 import { addPersonAction } from "@/store/actions";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  Modal,
-  Platform,
-  Animated,
-} from 'react-native';
+import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, Modal, Platform, Animated } from 'react-native';
 import React from "react";
 import { Ionicons } from '@expo/vector-icons';
 import DefaultUserAvatar from "../user-avatar/user-avatar";

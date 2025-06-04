@@ -4,8 +4,7 @@ import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useUiDebounce } from '@/hooks/use-ui-debounce';
-import { AnimatedStyle, AnimatedStyleProp } from 'react-native-reanimated';
-// import { ViewStyle } from 'react-native';
+import { AnimatedStyleProp } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -19,11 +18,7 @@ export type EditFormProps = Omit<PersonCardType, 'id'> & {
     description: string;
   }) => void;
   onCancel: () => void;
-  // saveStyle: {
-  //   translateY: Animated.AnimatedInterpolation<number>;
-  //   opacity: Animated.AnimatedInterpolation<number>;
   saveStyle: AnimatedStyleProp<ViewStyle>;
-  // saveStyle: AnimatedStyle;
 };
 
 const EditForm: React.FC<EditFormProps> = ({
@@ -38,13 +33,6 @@ const EditForm: React.FC<EditFormProps> = ({
 }: EditFormProps) => {
   const [photoUri, setPhotoUri] = useState(initialPhotoUri);
   const [name, setName] = useState(propName);
-  // const [birthday, setBirthday] = useState<Date>(
-  //   propBirthday instanceof Date
-  //     ? propBirthday
-  //     : propBirthday
-  //     ? new Date(propBirthday)
-  //     : new Date()
-  // );
   const [birthday, setBirthday] = useState<Dayjs>(
     dayjs(propBirthday).isValid() ? dayjs(propBirthday) : dayjs()
   );
@@ -58,13 +46,6 @@ const EditForm: React.FC<EditFormProps> = ({
   useEffect(() => {
     setPhotoUri(initialPhotoUri);
     setName(propName);
-    // setBirthday(
-    //   propBirthday instanceof Date
-    //     ? propBirthday
-    //     : propBirthday
-    //     ? new Date(propBirthday)
-    //     : new Date()
-    // );
     setBirthday(dayjs(propBirthday).isValid() ? dayjs(propBirthday) : dayjs());
     setDescription(propDescription);
   }, [initialPhotoUri, propName, propBirthday, propDescription]);

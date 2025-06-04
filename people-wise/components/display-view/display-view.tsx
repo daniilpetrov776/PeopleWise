@@ -5,40 +5,12 @@ import DefaultUserAvatar from '../user-avatar/user-avatar';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ru';
 
+import { declineDays, declineYears, computeNextBirthday } from './display-view.helpers';
+
 dayjs.locale('ru');
 
 type DisplayViewProps = Omit<PersonCardType, 'id'> & {
   photoUri: string;
-};
-
-const computeNextBirthday = (birthdayIso: string) => {
-  const birthDate = dayjs(birthdayIso);
-  if (!birthDate.isValid()) return { days: null as number | null, next: null as dayjs.Dayjs | null };
-
-  const now = dayjs().startOf('day');
-
-   // Делаем «момент дня рождения» в текущем году и сразу обнуляем время
-  let next = birthDate.year(now.year()).startOf('day');
-
-  // Если в этом году уже было
-  if (next.isBefore(now, 'day')) {
-    next = next.add(1, 'year').startOf('day');
-  }
-
-  const diffDays = next.diff(now, 'day');
-  return { days: diffDays, next, birthDate };
-};
-
-const declineDays = (n: number) => {
-  if (n % 10 === 1 && n % 100 !== 11) return 'день';
-  if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'дня';
-  return 'дней';
-};
-
-const declineYears = (n: number) => {
-  if (n % 10 === 1 && n % 100 !== 11) return 'год';
-  if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'года';
-  return 'лет';
 };
 
 const DisplayView: React.FC<DisplayViewProps> = ({ photoUri, name, birthday, description }) => {
