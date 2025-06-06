@@ -4,9 +4,9 @@ import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useUiDebounce } from '@/hooks/use-ui-debounce';
-import { AnimatedStyle, AnimatedStyleProp } from 'react-native-reanimated';
-// import { ViewStyle } from 'react-native';
+import { AnimatedStyleProp } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
+import dayjs, { Dayjs } from 'dayjs';
 
 export type EditFormProps = Omit<PersonCardType, 'id'> & {
   initialPhotoUri: string;
@@ -14,15 +14,11 @@ export type EditFormProps = Omit<PersonCardType, 'id'> & {
   onSave: (updated: {
     photoUri: string;
     name: string;
-    birthday: Date;
+    birthday: Dayjs;
     description: string;
   }) => void;
   onCancel: () => void;
-  // saveStyle: {
-  //   translateY: Animated.AnimatedInterpolation<number>;
-  //   opacity: Animated.AnimatedInterpolation<number>;
   saveStyle: AnimatedStyleProp<ViewStyle>;
-  // saveStyle: AnimatedStyle;
 };
 
 const EditForm: React.FC<EditFormProps> = ({
@@ -34,15 +30,11 @@ const EditForm: React.FC<EditFormProps> = ({
   onSave,
   onCancel,
   saveStyle,
-}) => {
+}: EditFormProps) => {
   const [photoUri, setPhotoUri] = useState(initialPhotoUri);
   const [name, setName] = useState(propName);
-  const [birthday, setBirthday] = useState<Date>(
-    propBirthday instanceof Date
-      ? propBirthday
-      : propBirthday
-      ? new Date(propBirthday)
-      : new Date()
+  const [birthday, setBirthday] = useState<Dayjs>(
+    dayjs(propBirthday).isValid() ? dayjs(propBirthday) : dayjs()
   );
   const [description, setDescription] = useState(propDescription);
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
@@ -54,20 +46,18 @@ const EditForm: React.FC<EditFormProps> = ({
   useEffect(() => {
     setPhotoUri(initialPhotoUri);
     setName(propName);
-    setBirthday(
-      propBirthday instanceof Date
-        ? propBirthday
-        : propBirthday
-        ? new Date(propBirthday)
-        : new Date()
-    );
+    setBirthday(dayjs(propBirthday).isValid() ? dayjs(propBirthday) : dayjs());
     setDescription(propDescription);
   }, [initialPhotoUri, propName, propBirthday, propDescription]);
 
   const showDatePicker = () => setDatePickerVisible(true);
   const hideDatePicker = () => setDatePickerVisible(false);
   const handleDateConfirmLocal = (date: Date) => {
-    setBirthday(date);
+    const newBirthday = dayjs(date);
+    // setBirthday(date);
+    if (newBirthday.isValid()) {
+      setBirthday(newBirthday);
+    }
     hideDatePicker();
   };
 
@@ -110,12 +100,12 @@ const EditForm: React.FC<EditFormProps> = ({
           />
 
       <TouchableOpacity style={styles.input} onPress={() => {showDatePicker(); handleUiDebounce();}} disabled={isUiBlocked}>
-        <Text>{birthday.toLocaleDateString()}</Text>
+        <Text>{birthday.format('DD.MM.YYYY')}</Text>
       </TouchableOpacity>
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="date"
-        date={birthday}
+        date={birthday.toDate()}
         onConfirm={handleDateConfirmLocal}
         onCancel={hideDatePicker}
       />

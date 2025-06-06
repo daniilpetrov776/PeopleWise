@@ -85,8 +85,8 @@ const Home: React.FC = () => {
     <Animated.View style={{ opacity: hintOpacity, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 10, pointerEvents: 'none' }}>
       {(
         <>
-        <Image source={require('@/assets/images/cloud.png')} style={styles.cloudImage}/>
-        <Image source={require('@/assets/images/help-arrow.png')} style={styles.arrowImage}/>
+        <Image source={require('@/assets/images/cloud-black.png')} style={styles.cloudImage}/>
+        <Image source={require('@/assets/images/help-arrow-black.png')} style={styles.arrowImage}/>
         </>
       )}
     </Animated.View>

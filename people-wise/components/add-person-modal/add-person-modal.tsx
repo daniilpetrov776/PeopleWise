@@ -2,23 +2,17 @@ import { useAppDispatch } from "@/hooks/store.hooks";
 import { useState } from "react";
 import { PersonCardType } from "@/types/cards";
 import { addPersonAction } from "@/store/actions";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TextInput,
-  TouchableOpacity,
-  Modal,
-  Platform,
-  Animated,
-} from 'react-native';
+import { StyleSheet, View, Text, Image, TextInput, TouchableOpacity, Modal, Platform, Animated } from 'react-native';
 import React from "react";
 import { Ionicons } from '@expo/vector-icons';
 import DefaultUserAvatar from "../user-avatar/user-avatar";
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useImagePicker } from "@/hooks/use-image-picker";
 import { useUiDebounce } from "@/hooks/use-ui-debounce";
+import dayjs, { Dayjs } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+dayjs.extend(customParseFormat);
 
 type addPersonModalProps = {
     isVisible: boolean;
@@ -29,7 +23,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
   const dispatch = useAppDispatch()
 
   const [name, setName] = useState<string>('');
-  const [birthday, setBirthday] = useState<Date>(new Date());
+  const [birthday, setBirthday] = useState<Dayjs>(dayjs());
   const [description, setDescription] = useState<string>('');
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
   const [renderModal, setRenderModal] = useState(isVisible);
@@ -60,8 +54,9 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
 
   const showDatePicker = () => setDatePickerVisible(true);
   const hideDatePicker = () => setDatePickerVisible(false);
+
   const handleDateConfirm = (date: Date) => {
-    setBirthday(date);
+    setBirthday(dayjs(date));
     hideDatePicker();
   };
 
@@ -70,7 +65,7 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
     handleUiDebounce();
     resetPicker();
     setName('');
-    setBirthday(new Date());
+    setBirthday(dayjs());
     setDescription('');
     setNameError(null);
     onClose();
@@ -139,12 +134,12 @@ const AddPersonModal: React.FC<addPersonModalProps> = ({isVisible, onClose}) => 
           />
 
           <TouchableOpacity style={styles.input} onPress={showDatePicker} disabled={isUiBlocked}>
-            <Text>{birthday.toLocaleDateString()}</Text>
+            <Text>{birthday.format('DD.MM.YYYY')}</Text>
           </TouchableOpacity>
           <DateTimePickerModal
             isVisible={isDatePickerVisible}
             mode="date"
-            date={birthday}
+            date={birthday.toDate()}
             onConfirm={handleDateConfirm}
             onCancel={hideDatePicker}
           />

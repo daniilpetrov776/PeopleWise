@@ -2,43 +2,37 @@ import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { PersonCardType } from '../../types/cards';
 import DefaultUserAvatar from '../user-avatar/user-avatar';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ru';
+
+import { declineDays, declineYears, computeNextBirthday } from './display-view.helpers';
+
+dayjs.locale('ru');
 
 type DisplayViewProps = Omit<PersonCardType, 'id'> & {
   photoUri: string;
 };
 
-const getDaysUntilBirthday = (birthday: string): number | null => {
-  const birthDate = new Date(birthday);
-  if (isNaN(birthDate.getTime())) return null;
-
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const nextBirthday = new Date(currentYear, birthDate.getMonth(), birthDate.getDate());
-
-  // Если день рождения уже прошёл — берём следующий год
-  if (
-    nextBirthday.getMonth() === now.getMonth() &&
-    nextBirthday.getDate() === now.getDate()
-  ) {
-    return 0; // сегодня
-  }
-
-  if (nextBirthday < now) {
-    nextBirthday.setFullYear(currentYear + 1);
-  }
-
-  const diffTime = nextBirthday.getTime() - now.getTime();
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-};
-
-const declineDays = (n: number) => {
-  if (n % 10 === 1 && n % 100 !== 11) return 'день';
-  if ([2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100)) return 'дня';
-  return 'дней';
-};
-
 const DisplayView: React.FC<DisplayViewProps> = ({ photoUri, name, birthday, description }) => {
-  const daysUntilBirthday = birthday ? getDaysUntilBirthday(typeof birthday === 'string' ? birthday : birthday.toISOString()) : null;
+  // Вычисляем дни до следующего ДР, саму дату next и оригинальную дату birthDate
+  const { days, next, birthDate } = computeNextBirthday(birthday ? String(birthday) : '');
+  const weekdayAbbrev = next ? next.format('dd') : '';
+
+   // Вычисляем, сколько лет исполнится: разница годов next и birthDate
+  let upcomingAge: number | null = null;
+  if (next && birthDate) {
+    const rawDiff = next.year() - birthDate.year();
+    upcomingAge = rawDiff > 0 ? rawDiff : 1;
+  }
+
+  let upcomingStyle = styles.text;
+  if (days !== null && days > 0) {
+    if (days <= 7) {
+      upcomingStyle = styles.redHighlight;
+    } else if (days <= 30) {
+      upcomingStyle = styles.yellowHighlight;
+    }
+  }
 
   return (
     <>
@@ -47,15 +41,18 @@ const DisplayView: React.FC<DisplayViewProps> = ({ photoUri, name, birthday, des
       </View>
       <Text style={styles.h2}>{name}</Text>
       <Text style={styles.text}>
-        Дата рождения: {birthday ? new Date(birthday).toLocaleDateString() : 'Не указано'}
+        Дата рождения: {dayjs(birthday).isValid() ? dayjs(birthday).format('DD.MM.YYYY') : 'Не указано'}
       </Text>
-      {daysUntilBirthday === 0 ? (
+      {days === 0 ? (
         <Text style={[styles.text, styles.highlight]}>🎉 День рождения сегодня!</Text>
-      ) : daysUntilBirthday !== null ? (
-        <Text style={styles.text}>
-          До дня рождения: {daysUntilBirthday} {declineDays(daysUntilBirthday)}
+      ) : days !== null ? (
+        <Text style={upcomingStyle}>
+          До дня рождения: {days} {declineDays(days)} ({weekdayAbbrev})
         </Text>
       ) : null}
+      <Text style={styles.text}>
+        Исполнится {upcomingAge}{' '}{upcomingAge !== null ? declineYears(upcomingAge) : ''}
+      </Text>
       <Text style={styles.text}>{description}</Text>
     </>
   );
@@ -89,7 +86,17 @@ const styles = StyleSheet.create({
     highlight: {
     color: '#E67E22',
     fontWeight: '600',
-  },
+    },
+      // Если осталось меньше недели – красное
+    redHighlight: {
+      color: '#f00',
+      fontWeight: '600',
+    },
+    // Если осталось меньше месяца – желтое (например, #F1C40F)
+    yellowHighlight: {
+      color: '#A34D67',
+      fontWeight: '600',
+    },
 })
 
 export default DisplayView;
