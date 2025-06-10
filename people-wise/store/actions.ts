@@ -1,7 +1,7 @@
 import { createAsyncThunk, nanoid } from '@reduxjs/toolkit';
 import { PersonCardType } from '../types/cards';
 import { ThunkExtraArg } from '.';
-import { getAllPersons } from '@/data-base/db';
+import { personRepository } from '@/data-base/db';
 
 const Action = {
   ADD_PERSON: 'data/ADD_PERSON',
@@ -58,7 +58,7 @@ export const syncPersonsFromDB = createAsyncThunk<
     async (_, thunkAPI) => {
     const { logger } = thunkAPI.extra;
     logger.info('Syncing persons from DB...');
-    const persons = await getAllPersons();
+    const persons = await personRepository.getAll();
     return persons;
     }
   )
