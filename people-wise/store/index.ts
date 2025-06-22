@@ -3,7 +3,7 @@ import { rootReducer } from './root-reducer';
 import { Logger } from '../libs/logger'
 import { ConsoleLogger } from '../libs/logger/console.loger';
 import { addPersonAction, deletePersonAction, updatePersonAction } from './actions';
-import { deletePerson, initDB, insertOrReplacePerson } from '@/data-base/db';
+import { personRepository } from '@/data-base/db';
 
 
 export interface ThunkExtraArg {
@@ -27,9 +27,8 @@ export const databaseMiddleware: Middleware = store => next => async action => {
 
   if (addPersonAction.fulfilled.match(action)) {
     try {
-      // await initDB(); // ✅ гарантируем инициализацию
       console.log('[Middleware] Adding person to DB:', action.payload);
-      await insertOrReplacePerson(action.payload);
+      await personRepository.create(action.payload);
     } catch (error) {
       console.error('[Middleware ERROR] Failed to add person to DB:', error);
     }
@@ -37,16 +36,19 @@ export const databaseMiddleware: Middleware = store => next => async action => {
 
   if (updatePersonAction.fulfilled.match(action)) {
     try {
-      // await initDB();
       console.log('[Middleware] updating person in DB:', action.payload)
-      await insertOrReplacePerson(action.payload);
+      await personRepository.update(action.payload);
     } catch (error) {
       console.error('[Middleware ERROR] update person in DB:', error);
     }
   }
 
   if (deletePersonAction.fulfilled.match(action)) {
-    await deletePerson(action.payload);
+    try {
+      await personRepository.delete(action.payload);
+    } catch (error) {
+      console.error('[Middleware ERROR] Failed to delete person from DB:', error);
+    }
   }
 
   return result;
