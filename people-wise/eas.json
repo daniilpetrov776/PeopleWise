@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 3.0.0"
+    "version": ">= 3.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -12,7 +13,20 @@
         "simulator": true
       }
     },
+    "development-local": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      },
+      "env": {
+        "EXPO_USE_LOCAL_CLI": "1"
+      }
+    },
     "production": {
+      "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
       },

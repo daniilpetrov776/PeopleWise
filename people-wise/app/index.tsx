@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import PersonCardsList from '../components/person-cards-list/person-cards-list';
 import { Ionicons } from '@expo/vector-icons';
 import AddPersonModal from '@/components/add-person-modal/add-person-modal';
+import { NotificationTest } from '@/components/notification-test/notification-test';
 import { useAppDispatch, useAppSelector } from '@/hooks/store.hooks';
 import { getCards } from '@/store/people-data/selectors';
 import { getIsOverlayVisible } from '@/store/global-data/selectors';
@@ -64,7 +65,7 @@ const Home: React.FC = () => {
 
   const handleDelete = () => {
     if (cardToDelete) {
-      dispatch(deletePersonAction(cardToDelete)); // Предполагается, что у тебя есть такое действие
+      dispatch(deletePersonAction(cardToDelete));
       closeDeleteModal();
     }
   };
@@ -82,20 +83,21 @@ const Home: React.FC = () => {
   return (
   <View style={{ flex: 1, position: 'relative'}}>
     {/* подсказка */}
-    <Animated.View style={{ opacity: hintOpacity, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 10, pointerEvents: 'none' }}>
+    {/* <Animated.View style={{ opacity: hintOpacity, position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center', zIndex: 10, pointerEvents: 'none' }}>
       {(
         <>
         <Image source={require('@/assets/images/cloud-black.png')} style={styles.cloudImage}/>
         <Image source={require('@/assets/images/help-arrow-black.png')} style={styles.arrowImage}/>
         </>
       )}
-    </Animated.View>
+    </Animated.View> */}
     {/* оверлей */}
     <Animated.View
     pointerEvents={isOverlayVisible ? 'auto' : 'none'}
     style={[styles.overlay, { opacity }]}>
     </Animated.View>
   <ScrollView style={containerStyle.container}>
+    <NotificationTest />
     <PersonCardsList cards={cards} onDelete={openDeleteModal}/>
   </ScrollView>
   <TouchableOpacity

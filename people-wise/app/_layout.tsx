@@ -6,7 +6,7 @@ import { Provider } from "react-redux";
 import AppLayout from "./app";
 import React from "react";
 import { store } from "@/store";
-
+import { birthdayNotificationService } from "@/services/birthday-notification-service";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -17,6 +17,13 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+
+      // Инициализируем сервис уведомлений
+      birthdayNotificationService.initialize().then(() => {
+        console.log('[APP] Сервис уведомлений инициализирован');
+      }).catch(error => {
+        console.error('[APP] Ошибка инициализации сервиса уведомлений:', error);
+      });
     }
   }, [loaded]);
 
@@ -26,7 +33,7 @@ export default function RootLayout() {
 
   return (
     <Provider store={store}>
-      <AppLayout colorScheme={colorScheme === 'dark' || colorScheme === 'light' ? colorScheme : null} />
+      <AppLayout colorScheme={colorScheme === 'dark' || colorScheme === 'light' ? colorScheme : 'light'} />
     </Provider>
   );
 }

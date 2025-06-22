@@ -4,6 +4,7 @@ import { Logger } from '../libs/logger'
 import { ConsoleLogger } from '../libs/logger/console.loger';
 import { addPersonAction, deletePersonAction, updatePersonAction } from './actions';
 import { personRepository } from '@/data-base/db';
+import { notificationsMiddleware } from './notifications-middleware';
 
 
 export interface ThunkExtraArg {
@@ -62,5 +63,5 @@ export const store = configureStore({
         extraArgument,
       }
     })
-    .concat(loggerMiddleware, databaseMiddleware),
+    .concat(loggerMiddleware, databaseMiddleware, notificationsMiddleware),
 });

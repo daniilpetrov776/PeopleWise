@@ -5,6 +5,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState: GlobalData = {
   isOverlayVisible: false,
 }
+
 export const globalData = createSlice({
   name: NameSpace.Global,
   initialState,

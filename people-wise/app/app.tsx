@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from '@/hooks/store.hooks';
 import { syncPersonsFromDB } from '@/store/actions';
 import { getIsDataLoading } from '@/store/people-data/selectors';
 import { initDB, personRepository } from '@/data-base/db';
+import { initNotificationsDB } from '@/data-base/notifications-db';
+import { initializeNotifications } from '@/store/notifications/notifications';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import * as BackgroundTask from 'expo-background-task';
@@ -55,8 +57,13 @@ export default function AppLayout({ colorScheme }: Props) {
       try {
         await initDB(); // Инициализация базы данных
         console.log('[DB] Инициализация завершена');
+
+        await initNotificationsDB(); // Инициализация базы данных уведомлений
+        console.log('[Notifications DB] Инициализация завершена');
+
         setDbReady(true);
         dispatch(syncPersonsFromDB()); // Загрузка данных из БД
+        dispatch(initializeNotifications()); // Инициализация уведомлений
         registerBackgroundTaskAsync(); // Регистрация фоновой задачи
 
         // Проверка обновления данных каждый час
